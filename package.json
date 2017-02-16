@@ -1,0 +1,7 @@
+{
+  "name": "repla",
+  "version": "0.1",
+  "dependencies": {
+    "tmp": "0.0.31"
+  }
+}
