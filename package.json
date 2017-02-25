@@ -2,6 +2,7 @@
   "name": "repla",
   "version": "0.1",
   "dependencies": {
+    "dashdash": "^1.14.1",
     "tmp": "0.0.31"
   }
 }

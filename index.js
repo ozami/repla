@@ -5,11 +5,29 @@ const fs = require("fs");
 const tmp = require("tmp");
 const child_process = require("child_process");
 
-const main = () => {
+const main = (argv) => {
     tmp.setGracefulCleanup();
+    let options;
     
-    if (process.argv.length < 3) {
-        console.log("specify input file(s)");
+    const parser = require("dashdash").createParser({
+        options: [
+            {
+                names: ["literal-match", "l"],
+                type: "bool",
+                help: "Match the pattern literally; disable regular expression match",
+            },
+        ]
+    });
+    try {
+        options = parser.parse(argv);
+    }
+    catch (e) {
+        console.error('error: %s', e.message);
+        return 1;
+    }
+    
+    if (options._args.length < 1) {
+        console.error("error: specify input file(s)");
         return 1;
     }
     
@@ -39,7 +57,7 @@ const main = () => {
     
     const search_re = new RegExp(search, "g");
     
-    process.argv.slice(2).forEach((path) => {
+    options._args.forEach((path) => {
         const fd = fs.openSync(path, "r+");
         const text = fs.readFileSync(fd, {encoding: "utf8"});
         const replaced = text.replace(search_re, replace);
@@ -49,4 +67,4 @@ const main = () => {
     return 0;
 };
 
-process.exit(main());
+process.exit(main(process.argv));
