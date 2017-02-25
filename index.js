@@ -52,8 +52,12 @@ const main = (argv) => {
         return 1;
     }
     
-    const search = recipe_split[1].slice(0, -1);
-    const replace = recipe_split[2].slice(0, -1);
+    let search = recipe_split[1].slice(0, -1);
+    let replace = recipe_split[2].slice(0, -1);
+    if (options.literal_match) {
+        search = search.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
+        replace = replace.replace(/\$/g, "$$$$");
+    }
     
     const search_re = new RegExp(search, "g");
     
