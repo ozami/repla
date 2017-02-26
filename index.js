@@ -59,7 +59,7 @@ const main = (argv) => {
         replace = replace.replace(/\$/g, "$$$$");
     }
     
-    const search_re = new RegExp(search, "g");
+    const search_re = new RegExp(search, "gm");
     
     options._args.forEach((path) => {
         const fd = fs.openSync(path, "r+");
