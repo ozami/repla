@@ -12,6 +12,12 @@ const main = (argv) => {
     const parser = require("dashdash").createParser({
         options: [
             {
+                names: ["file", "f"],
+                type: "string",
+                help: "Recipe file",
+                helpArg: "<recipe file>",
+            },
+            {
                 names: ["literal-match", "l"],
                 type: "bool",
                 help: "Match the pattern literally; disable regular expression match",
@@ -30,21 +36,20 @@ const main = (argv) => {
         console.error("error: specify input file(s)");
         return 1;
     }
+
+    let recipe_file = options.file;
+    let recipe;
+    try {
+        if (recipe_file === undefined) {
+            recipe_file = editRecipe();
+        }
+        recipe = fs.readFileSync(recipe_file, {encoding: "utf8"});
+    }
+    catch (e) {
+        console.error("error: could not read recipe");
+        return 2;
+    }
     
-    const recipe_file = tmp.fileSync({
-        prefix: "repla-",
-        postfix: ".txt",
-    });
-    
-    fs.writeFileSync(
-        recipe_file.fd,
-        "#### search (regular expression) ####\n\n######## replace ########\n\n################\n",
-        {encoding: "utf8"}
-    );
-    
-    child_process.spawnSync("vim", [recipe_file.name], {stdio: "inherit"});
-    
-    const recipe = fs.readFileSync(recipe_file.fd, {encoding: "utf8"});
     const recipe_split = recipe.trim().split(/^#{4,}.*\n?/m);
     
     if (recipe_split.length != 4) {
@@ -69,6 +74,23 @@ const main = (argv) => {
         fs.writeFileSync(fd, replaced, {encoding: "utf8"});
     });
     return 0;
+};
+
+const editRecipe = () => {
+    const recipe_file = tmp.fileSync({
+        prefix: "repla-",
+        postfix: ".txt",
+    });
+
+    fs.writeFileSync(
+        recipe_file.fd,
+        "#### search (regular expression) ####\n\n######## replace ########\n\n################\n",
+        {encoding: "utf8"}
+    );
+
+    child_process.spawnSync("vim", [recipe_file.name], {stdio: "inherit"});
+
+    return recipe_file.fd;
 };
 
 process.exit(main(process.argv));
