@@ -1,0 +1,5 @@
+Remove all spaces and tabs at the begining of line.
+####
+^( |\t)+
+####
+####
