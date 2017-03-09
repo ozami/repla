@@ -56,15 +56,53 @@ const main = (argv) => {
         console.log("error");
         return 1;
     }
+    let modes = {
+        "regexp": true,
+        "multiline": true,
+        "ignore-case": false,
+        "ignore-spaces": false,
+        "global": true,
+    };
+    try {
+        recipe_split[3].split(/\s+/).forEach((i) => {
+            if (i == "") {
+                return;
+            }
+            let mode = i;
+            const no = mode.match(/^no-/);
+            if (no) {
+                mode = mode.replace(/^no-/, "");
+            }
+            if (modes[mode] === undefined) {
+                throw `Unknown match mode '${i}'`;
+            }
+            modes[mode] = !no;
+        });
+    }
+    catch (e) {
+        console.error("error: " + e);
+        return 1;
+    }
     
     let search = recipe_split[1].slice(0, -1);
     let replace = recipe_split[2].slice(0, -1);
-    if (options.literal_match) {
+    if (!modes.regexp) {
         search = search.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
         replace = replace.replace(/\$/g, "$$$$");
     }
     
-    const search_re = new RegExp(search, "gm");
+    let flags = "";
+    if (modes.global) {
+        flags += "g";
+    }
+    if (modes.multiline) {
+        flags += "m";
+    }
+    if (modes["ignore-case"]) {
+        flags += "i";
+    }
+    
+    const search_re = new RegExp(search, flags);
     
     options._args.forEach((path) => {
         const fd = fs.openSync(path, "r+");
