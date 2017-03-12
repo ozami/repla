@@ -8,8 +8,16 @@ const child_process = require("child_process");
 const main = (argv) => {
     tmp.setGracefulCleanup();
     let options;
-    
-    const parser = require("dashdash").createParser({
+    const dashdash = require("dashdash");
+    dashdash.addOptionType({
+        name: "list",
+        takesArg: true,
+        helpArg: "LIST",
+        parseArg: (option, optstr, arg) => {
+            return arg.trim().split(/\s*,\s*/g).filter(i => i);
+        },
+    });
+    const parser = dashdash.createParser({
         options: [
             {
                 names: ["file", "f"],
@@ -18,9 +26,10 @@ const main = (argv) => {
                 helpArg: "<recipe file>",
             },
             {
-                names: ["literal-match", "l"],
-                type: "bool",
-                help: "Match the pattern literally; disable regular expression match",
+                names: ["match", "m"],
+                type: "list",
+                help: "Comma separated matching options",
+                helpArg: "<matching options>",
             },
         ]
     });
@@ -64,7 +73,11 @@ const main = (argv) => {
         "global": true,
     };
     try {
-        recipe_split[3].split(/\s+/).forEach((i) => {
+        let mode_args = recipe_split[3].split(/\n+/).map(i => i.trim());
+        if (options.match) {
+            mode_args = mode_args.concat(options.match);
+        }
+        mode_args.forEach((i) => {
             if (i == "") {
                 return;
             }
@@ -74,7 +87,7 @@ const main = (argv) => {
                 mode = mode.replace(/^no-/, "");
             }
             if (modes[mode] === undefined) {
-                throw `Unknown match mode '${i}'`;
+                throw `Unknown matching option '${i}'`;
             }
             modes[mode] = !no;
         });
